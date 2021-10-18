@@ -6,14 +6,13 @@
 /*   By: jobject <jobject@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/13 16:56:16 by jobject           #+#    #+#             */
-/*   Updated: 2021/10/15 20:56:08 by jobject          ###   ########.fr       */
+/*   Updated: 2021/10/18 14:47:59 by jobject          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <stdio.h>
 
-char	*get_after(char	*str)
+static char	*get_after(char	*str)
 {
 	size_t	i;
 	char	*res;
@@ -21,17 +20,20 @@ char	*get_after(char	*str)
 	i = 0;
 	while (*(str + i) != '\n' && *(str + i))
 		i++;
-	if (*(str + i + 1))
+	if (*(str + i))
 	{
-		res = (char *) malloc(ft_strlen(str) - i);
+		res = (char *) malloc(ft_strlen(str) - i + 1);
+		if (!res)
+			return (NULL);
 		ft_memcpy(res, str + i + 1, ft_strlen(str) - i);
-		//free(str);
+		free(str);
 		return (res);
 	}
+	free (str);
 	return (NULL);
 }
 
-char	*get_until(char	*str)
+static char	*get_until(char	*str)
 {
 	int			i;
 	char		*res;
@@ -39,20 +41,20 @@ char	*get_until(char	*str)
 	i = 0;
 	while (*(str + i) != '\n' && *(str + i))
 		i++;
-	if (*(str + i))
-	{
-		res = (char *) malloc(i + 1);
-		ft_memcpy(res, str, i + 1);
-		//free(str);
-		return (res);
-	}
-	return (NULL);
+	res = (char *) malloc(i + 2);
+	if (!res)
+		return (NULL);
+	ft_memcpy(res, str, i + 1);
+	return (res);
 }
 
-int	full_line(char	*str)
+static int	full_line(char	*str)
 {
-	int i;
+	int	i;
+
 	i = 0;
+	if (!str)
+		return (0);
 	while (*(str + i) && *(str + i) != '\n')
 		i++;
 	if (!*(str + i))
@@ -64,19 +66,22 @@ char	*get_next_line(int fd)
 {
 	static char	*res;
 	char		*str;
-	char		buf[BUFFER_SIZE + 1];
 	int			r;
+	char		buf[BUFFER_SIZE + 1];
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	r = 1;
-	if (!res)
-		res = ft_strdup("\0");
-	while (r > 0 && !full_line(res))
+	while (r && !full_line(res))
 	{
 		r = read(fd, buf, BUFFER_SIZE);
-		if (r <= 0)
+		if (r < 0 || (!r && !res))
 			return (NULL);
+		if (!r && !*res)
+		{
+			free(res);
+			return (NULL);
+		}
 		*(buf + r) = '\0';
 		res = ft_strjoin(res, buf);
 	}
@@ -84,38 +89,3 @@ char	*get_next_line(int fd)
 	res = get_after(res);
 	return (str);
 }
-
- #include <fcntl.h>
-/*
- int		main(void)
- {
- 	int		fd;
- 	char	*line;
-	
-
- 	fd = open("test.txt", O_RDONLY);
- 	line = get_next_line(fd);	
-	puts(line);
- 	free(line);
- 	line = get_next_line(fd);
-	puts(line);
- 	free(line);
- 	line = get_next_line(fd);
- 	puts(line);
- 	free(line);
-	// close(fd);
-	while (1) ;
-}
-*//*
-int		main(void)
-{
-	char	*line;
-
-	while ((line = get_next_line(0)))
-	{
-		puts(line);
-		free(line);
-	}
-	//free(line);
-}
-*/
