@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jobject <jobject@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/10/13 16:56:16 by jobject           #+#    #+#             */
-/*   Updated: 2021/10/18 15:32:48 by jobject          ###   ########.fr       */
+/*   Created: 2021/10/18 15:06:34 by jobject           #+#    #+#             */
+/*   Updated: 2021/10/18 15:15:59 by jobject          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 static char	*get_after(char	*str)
 {
@@ -64,7 +64,7 @@ static int	full_line(char	*str)
 
 char	*get_next_line(int fd)
 {
-	static char	*res;
+	static char	*res[10000];
 	char		*str;
 	int			r;
 	char		buf[BUFFER_SIZE + 1];
@@ -72,20 +72,20 @@ char	*get_next_line(int fd)
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	r = 1;
-	while (r && !full_line(res))
+	while (r && !full_line(res[fd]))
 	{
 		r = read(fd, buf, BUFFER_SIZE);
-		if (r < 0 || (!r && !res))
+		if (r < 0 || (!r && !res[fd]))
 			return (NULL);
-		if (!r && !*res)
+		if (!r && !*res[fd])
 		{
-			free(res);
+			free(res[fd]);
 			return (NULL);
 		}
 		*(buf + r) = '\0';
-		res = ft_strjoin(res, buf);
+		res[fd] = ft_strjoin(res[fd], buf);
 	}
-	str = get_until(res);
-	res = get_after(res);
+	str = get_until(res[fd]);
+	res[fd] = get_after(res[fd]);
 	return (str);
 }
